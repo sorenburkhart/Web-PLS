@@ -81,7 +81,16 @@ class MetricTests(unittest.TestCase):
         time_points = [0, 0.083333333333333329, 0.25, 0.5, 1, 1.5, 2, 4, 8, 12, 16, 20, 24]
         time_course = [1.2672097275,1.590688972,1.686169412,0.668113898,0.454789704667,0.577257919667,0.747457979667,1.04653912833,1.50108848933,1.58878468067,2.12204150567,1.92499022267,2.41681636767]
         sensitivity = 0.1
-        metricmaker.peak_finder(time_course, sensitivity)
+        self.assertEqual([-1, 0, 1, 0, -1, 0, 0, 0, 0, 0, 1, -1, 1],
+                         metricmaker.peak_finder(time_course, sensitivity))
+        # Test at a different sensitivity level
+        sensitivity = 0.5
+        self.assertEqual([-1, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 1],
+                         metricmaker.peak_finder(time_course, sensitivity))
+        # Test at a different sensitivity level
+        sensitivity = 1.0
+        self.assertEqual([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                         metricmaker.peak_finder(time_course, sensitivity))
                                  
 if __name__ == "__main__":
     unittest.main()

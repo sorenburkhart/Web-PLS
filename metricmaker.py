@@ -224,7 +224,7 @@ def peak_finder(y_data, sensitivity):
     
     # Go through all time points
     for i in range(0,num_timepoints):
-        print "i = %d" %i
+        print "NEXT TIMEPOINT i = %d" %i
         print "combo_sort_by_TP\n%s\ncombo_sort_TC\n%s\nsort_TC_index\n%s" % (combo_sort_by_TP, combo_sort_by_TC, sort_TC_index)
         
         # If the current time point is a peak.
@@ -275,7 +275,7 @@ def peak_finder(y_data, sensitivity):
 
             print 'before right i=%d num_timepoints=%d right_sig=%d sort_TC_index[i]=%d sort_TC_index[i]-j=%d' % (i,num_timepoints,right_sig,sort_TC_index[i],sort_TC_index[i]-j)
             #--------------COMPARE TO THE RIGHT-------------------------------
-            while (right_sig!=1)&(sort_TC_index[i]!=num_timepoints-1)&(sort_TC_index[i]!=0)&((sort_TC_index[i]+j)<num_timepoints-1):
+            while (right_sig!=1)&(sort_TC_index[i]!=num_timepoints-1)&(sort_TC_index[i]!=0)&((sort_TC_index[i]+j)<=num_timepoints-1):
                 position_in_time = (sort_TC_index[i]+j)
                 print 'num_timepoints = %d\ni = %d\nj = %d\n\nsort_TC_index[i] = %d\ncombo_sort_by_TP%s' % (num_timepoints,i,j,sort_TC_index[i],combo_sort_by_TP)
                 current_peak = [combo_sort_by_TP[0][sort_TC_index[i]],combo_sort_by_TP[1][sort_TC_index[i]]]
@@ -290,14 +290,18 @@ def peak_finder(y_data, sensitivity):
                 
                 # if the comparing point is a peak and is lower then the current peak, then the comparing point is not a significant peak
                 # these rules dont apply to the very last point.
+                print "compare_right[1] = %d sort_TC_index[i]+j != num_timepoints -1  %d != %d" % (compare_right[1],sort_TC_index[i]+j,num_timepoints-1)
                 if ((compare_right[1] == 1)&((sort_TC_index[i]+j)!=num_timepoints-1)):
+                    print "INSIDE CHECKPOINT"
                     if ((current_peak[0]-compare_right[0])>0):
+                        print "peak"
                         combo_sort_by_TP[1][sort_TC_index[i]+j]=0
                     else:
+                        print "NO PEAK"
                         # if the comparing peak is higher than the current peak, then the current peak is not a significant peak
                         right_sig = -1
                         combo_sort_by_TP[1][sort_TC_index[i]]=0
-
+                print "SKIP CHECKPOINT"
                 # if it reaches the end of the time course and the end is a peak, then current peak is insig
                 # if end is a valley than current peak is significant
                 if ((sort_TC_index[i]+j)==num_timepoints-1):
@@ -352,5 +356,5 @@ def peak_finder(y_data, sensitivity):
             low_valley_position = i
     
     print "combo_sort_by_TP %s" % combo_sort_by_TP
-    
+    return combo_sort_by_TP[1]
     
