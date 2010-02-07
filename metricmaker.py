@@ -22,7 +22,7 @@ import copy
 class MetricMakerError(Exception): pass
 class TooManyEmptyValues(MetricMakerError): pass
 class TimePointsMismatchWithTimeCourse(MetricMakerError): pass
-class UnknownError(MetricMakerException): pass
+class UnknownError(MetricMakerError): pass
 
 def sort(data):
     "Sorts an array.  Returns a copy of the sorted array and the index of the sort order"
@@ -224,37 +224,41 @@ def peak_finder(y_data, sensitivity):
     
     # Go through all time points
     for i in range(0,num_timepoints):
+        print "i = %d" %i
+        print "combo_sort_by_TP\n%s\ncombo_sort_TC\n%s\nsort_TC_index\n%s" % (combo_sort_by_TP, combo_sort_by_TC, sort_TC_index)
+        
         # If the current time point is a peak.
-        if combo_sort_by_TC[i][1] == 1
+        if combo_sort_by_TC[i][1] == 1:
             j=1
-            left_sig=0; #1 = significant ; -1 = insignificant
+            left_sig=0 #1 = significant ; -1 = insignificant
             # while left side not significant and not the beginning or end points and whose left point isn't at time position 0 (out of bounds)
-            while ((left_sig!=1)&&(sort_TC_index[i]!=num_timepoints-1)&&(sort_TC_index[i]~=0)&&(sort_TC_index[i]-j)!=0 ):
-
+            
+            while (left_sig!=1)&(sort_TC_index[i]!=num_timepoints-1)&(sort_TC_index[i]!=0)&((sort_TC_index[i]-j)!=-1):
                 #----------COMPARE TO THE LEFT-------------------------------
                 position_in_time = (sort_TC_index[i]-j)
-                current_peak = combo_sort_by_TP[sort_TC_index(i)]
-                compare_left = combo_sort_by_TP[sort_TC_index(i)-j]
-
+                current_peak = [combo_sort_by_TP[0][sort_TC_index[i]],combo_sort_by_TP[1][sort_TC_index[i]]]
+                compare_left = [combo_sort_by_TP[0][sort_TC_index[i]-j],combo_sort_by_TP[1][sort_TC_index[i]-j]]
+                print "compare left"
+                print "position_in_time=%d\ncurrent_peak=%s\ncompare_left=%s\n" % (position_in_time, current_peak, compare_left)
                 # if the current peak is greater than the significant jump size from the compare point, it's significant.
                 if ((current_peak[0] - compare_left[0])>min_jump):
                     left_sig = 1
                 
                 # if the comparing point is a peak and is lower then the current peak, then the comparing point is not a significant peak.
                 # these rules dont apply to the very first point.
-                if ((compare_left[1] == 1)&&((sort_TC_index[i]-j)!=1)):
-                    if ((current_peak[0]-compare_left[0]))>0):
-                        combo_sort_by_TP[sort_TC_index[i]-j][1]=0;
+                if ((compare_left[1] == 1)&((sort_TC_index[i]-j)!=1)):
+                    if ((current_peak[0]-compare_left[0]))>0:
+                        combo_sort_by_TP[1][sort_TC_index[i]-j]=0;
                     else: #if the comparing peak is higher than the current peak, then the current peak is not a significant peak.
                         left_sig=-1;
-                        combo_sort_by_TP[sort_TC_index(i)][1]=0;
+                        combo_sort_by_TP[1][sort_TC_index[i]]=0;
 
                 # if it reaches the beginning of the time course and the beginning is a peak, then current peak is insignificant.
                 # if beginning is a valley than current peak is significant.
                 if ((sort_TC_index[i]-j)==0):
                     if (compare_left[1] == 1):
                         left_sig=-1
-                        combo_sort_by_TP[sort_TC_index[i]][1]=0
+                        combo_sort_by_TP[1][sort_TC_index[i]]=0
                      
                     if (compare_left[1] == -1):
                         left_sig = 1
@@ -263,60 +267,90 @@ def peak_finder(y_data, sensitivity):
                          raise UnknownError, 'problem: shouldnt get here --  end peaks were not set properly. (Must be either a peak or valley)'  
 
                 j=j+1
+                print 'while loop left i=%d num_timepoints=%d left_sig=%d sort_TC_index[i]=%d sort_TC_index[i]-j=%d' % (i,num_timepoints,left_sig,sort_TC_index[i],sort_TC_index[i]-j)
 
-
+            print 'end compare left while'
             j=1
             right_sig=0 #1 = significant ; -1 = insignificant
 
+            print 'before right i=%d num_timepoints=%d right_sig=%d sort_TC_index[i]=%d sort_TC_index[i]-j=%d' % (i,num_timepoints,right_sig,sort_TC_index[i],sort_TC_index[i]-j)
             #--------------COMPARE TO THE RIGHT-------------------------------
-            while ((right_sig!=1)&&(sort_TC_index[i]!=num_timepoints-1)&&(sort_TC_index[i]!=1)&&(sort_TC_index[i]+j)<=num_timepoints-1)
+            while (right_sig!=1)&(sort_TC_index[i]!=num_timepoints-1)&(sort_TC_index[i]!=0)&((sort_TC_index[i]+j)<num_timepoints-1):
                 position_in_time = (sort_TC_index[i]+j)
-                current_peak = combo_sort_by_TP[sort_TC_index(i)]
-                compare_right = combo_sort_by_TP[sort_TC_index(i)+j]
+                print 'num_timepoints = %d\ni = %d\nj = %d\n\nsort_TC_index[i] = %d\ncombo_sort_by_TP%s' % (num_timepoints,i,j,sort_TC_index[i],combo_sort_by_TP)
+                current_peak = [combo_sort_by_TP[0][sort_TC_index[i]],combo_sort_by_TP[1][sort_TC_index[i]]]
+                compare_right = [combo_sort_by_TP[0][sort_TC_index[i]+j],combo_sort_by_TP[1][sort_TC_index[i]+j]]
+                
+                print "compare right"
+                print "position_in_time=%d\ncurrent_peak=%s\ncompare_right=%s\n" % (position_in_time, current_peak, compare_right)
+                
+                # if the current peak is greater than the significant jump size from the compare point, its sugnificant.
+                if ((current_peak[0] - compare_right[0])>min_jump):
+                    right_sig = 1
+                
+                # if the comparing point is a peak and is lower then the current peak, then the comparing point is not a significant peak
+                # these rules dont apply to the very last point.
+                if ((compare_right[1] == 1)&((sort_TC_index[i]+j)!=num_timepoints-1)):
+                    if ((current_peak[0]-compare_right[0])>0):
+                        combo_sort_by_TP[1][sort_TC_index[i]+j]=0
+                    else:
+                        # if the comparing peak is higher than the current peak, then the current peak is not a significant peak
+                        right_sig = -1
+                        combo_sort_by_TP[1][sort_TC_index[i]]=0
 
-                % if the current peak is greater than the significant jump size from the compare point, its sugnificant.
-                if ((current_peak(1) - compare_right(1))>min_jump)
-                    right_sig = 1;
-                end
-
-                % if the comparing point is a peak and is lower then the current peak, then the comparing point is not a significant peak
-                % these rules dont apply to the very last point.
-                if ((compare_right(2) == 1)&((sort_TC_index(i)+j)~=num_timepoints))
-                    if ((current_peak(1)-compare_right(1))>0)
-                        combo_sort_by_TP(sort_TC_index(i)+j,2)=0;
-                    else %if the comparing peak is higher than the current peak, then the current peak is not a significant peak
+                # if it reaches the end of the time course and the end is a peak, then current peak is insig
+                # if end is a valley than current peak is significant
+                if ((sort_TC_index[i]+j)==num_timepoints-1):
+                    if (compare_right[1] == 1):
                         right_sig=-1;
-                        combo_sort_by_TP(sort_TC_index(i),2)=0;
-                    end
-                end
+                        combo_sort_by_TP[1][sort_TC_index[i]]=0
+                    
+                    if (compare_right[1] == -1):
+                        right_sig = 1
 
-                % if it reaches the end of the time course and the end is a peak, then current peak is insig
-                % if end is a valley than current peak is significant
-                if ((sort_TC_index(i)+j)==num_timepoints)
-                    if (compare_right(2) == 1)
-                        right_sig=-1;
-                        combo_sort_by_TP(sort_TC_index(i),2)=0;
-                    end
+                    if (compare_right[1] == 0):
+                        raise UnknownError, 'problem: shouldnt get here --  end peaks were not set properly. (Must be either a peak or valley)'  
+                
+                j=j+1
 
-                    if (compare_right(2) == -1)
-                        right_sig = 1;
-                    end
+            # Rebuild the combo sorted by time course to include the lost peaks (if peak was significant it wont be lost)
+            #[sorted_timecourse,sort_TC_index] = sort(combo_sort_by_TP(:,1));
+            #% sort by amplitude (time course)
+            #combo_sort_by_TC = combo_sort_by_TP(sort_TC_index,:);
+            #combo_sort_by_TC = combo_sort_by_TC((end:-1:1),:);
+            #sort_TC_index = sort_TC_index((end:-1:1),:);
+            sorted_timecourse, sort_TC_index = sort(combo_sort_by_TP[0]);
+        
+            #print "sorted_timecourse = %s" % sorted_timecourse
+    
+            # Sort combined matrix by amplitude (time course)
+            combo_sort_by_TC = zip(y_data, peak_valley)
+            combo_sort_by_TC.sort()
+            combo_sort_by_TC.reverse()
+    
+            sort_TC_index.reverse()
+    print "combo_sort_by_TP %s" % combo_sort_by_TP
+    #---------SET VALLEYS--------------------------------
+    # Valleys are set as the lowest point between two peaks.
 
-                    if (compare_right(2) == 0)
-                        'problem: shouldnt get here --  end peaks were not set properly. (Must be either a peak or valley)'  
-                    end
-                end
-
-                j=j+1;
-            end   
-
-
-            % Rebuild the combo sorted by time course to include the lost peaks (if peak was significant it wont be lost)
-            [sorted_timecourse,sort_TC_index] = sort(combo_sort_by_TP(:,1));
-            % sort by amplitude (time course)
-            combo_sort_by_TC = combo_sort_by_TP(sort_TC_index,:);
-            combo_sort_by_TC = combo_sort_by_TC((end:-1:1),:);
-            sort_TC_index = sort_TC_index((end:-1:1),:);
-        end  
-    end
-    """
+    # there hasn't been a first peak yet
+    no_first = 1 
+    # initialize the low valley as the highest point, so valley will be guaranteed to be lower.
+    low_valley = max(combo_sort_by_TP[0])
+    print 'low_valley = %f' % low_valley
+    for i in range(0,num_timepoints):
+        if (combo_sort_by_TP[1][i] == 1): 
+            if (no_first == 1):
+                no_first = 0
+                low_valley = max(combo_sort_by_TP[0])
+            else:
+                # if its a peak (but not the first one) set the low valley for the previous section and reset the low valley
+                combo_sort_by_TP[1][low_valley_position] = -1
+                low_valley = max(combo_sort_by_TP[0])
+        if (combo_sort_by_TP[0][i]<low_valley):
+            low_valley = combo_sort_by_TP[0][i]
+            low_valley_position = i
+    
+    print "combo_sort_by_TP %s" % combo_sort_by_TP
+    
+    
