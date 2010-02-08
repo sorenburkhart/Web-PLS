@@ -5,7 +5,8 @@ import unittest
 
 class MetricTests(unittest.TestCase):
     def testTooManyEmptyTimeCourses(self):
-        time_course = ['0','','','','1','2','','','','' ]
+        self.assertTrue(False,'Need resolution on whether time course is going to be allowed to have None in the array')
+        time_course = [0,None,None,None,1,2,None,None,None,None ]
         time_points = [1,2,3,4,5,6,7,8,9,10]
         TC_label = None
         sensitivity = None
@@ -15,7 +16,8 @@ class MetricTests(unittest.TestCase):
                           time_course, time_points, TC_label, sensitivity, metric_select)
     
     def testValidTimeCourses(self):
-        time_course = ['0','1','2','1','1','2','','','','' ]
+        self.assertTrue(False,'Need resolution on whether time course is going to be allowed to have None in the array')
+        time_course = [0,1,2,1,1,2,None,None,None,None]
         time_points = [1,2,3,4,5,6,7,8,9,10]
         TC_label = None
         sensitivity = None
@@ -91,6 +93,10 @@ class MetricTests(unittest.TestCase):
         sensitivity = 1.0
         self.assertEqual([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
                          metricmaker.peak_finder(time_course, sensitivity))
-                                 
+    
+    def test_find(self):
+        peaks = [1, 0, 1, 0, -1, 0, -1, 0, 1, -1]
+        self.assertEqual([0, 2, 8],
+                         metricmaker.find(peaks, 1))              
 if __name__ == "__main__":
     unittest.main()

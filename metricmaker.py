@@ -24,6 +24,10 @@ class TooManyEmptyValues(MetricMakerError): pass
 class TimePointsMismatchWithTimeCourse(MetricMakerError): pass
 class UnknownError(MetricMakerError): pass
 
+def find(array, value):
+    "Searches through array for value. Returns an array of the indexes found"
+    return map(None,(i for i in xrange(len(array)) if array[i] == value))
+    
 def sort(data):
     "Sorts an array.  Returns a copy of the sorted array and the index of the sort order"
     zipped_data = zip(data, xrange(len(data)))
@@ -99,7 +103,7 @@ def generate(time_course, time_points, TC_label, sensitivity, metric_select):
     
     # first check if there are more empty values than measurments
     # if there are too many empty values, then metric_maker exits
-    if sum(1 for v in time_course if v == '') >= len(time_points)/2:
+    if sum(1 for v in time_course if v == None) >= len(time_points)/2:
         raise TooManyEmptyValues, "found too many empty values in the time course."
     
     # number of timepoints in the timecourse.
@@ -113,6 +117,15 @@ def generate(time_course, time_points, TC_label, sensitivity, metric_select):
     equil = 0;      # equilibrium activity based on the last 25% of timepoints
     deriv = zeros(1,num_timepoints-1); # derivative at each timepoint
     peaktime = 0;   # time of the max point in the timecourse.
+    
+    # Call the peakfinder to build the peak_valley_course
+    peak_valley_course = peak_finder(time_course,sensitivity)
+
+    # Create indexes of the locations of peaks and valleys in the timecourse.
+    peak_index = find(peak_valley_course == 1);
+    num_of_peaks = length(peak_index);
+    valley_index = find(peak_valley_course == -1);
+    num_of_valleys = length(valley_index);
 
 def calculate_peak_valley(y_data):
     "Determines the peaks for a timeseries"
@@ -220,12 +233,12 @@ def peak_finder(y_data, sensitivity):
     
     sort_TC_index.reverse()
     
-    print "combo_sort_by_TC = %s\nsort_TC_index = %s" % (combo_sort_by_TC,sort_TC_index)
+    #print        "combo_sort_by_TC = %s\nsort_TC_index = %s" % (combo_sort_by_TC,sort_TC_index)
     
     # Go through all time points
     for i in range(0,num_timepoints):
-        print "NEXT TIMEPOINT i = %d" %i
-        print "combo_sort_by_TP\n%s\ncombo_sort_TC\n%s\nsort_TC_index\n%s" % (combo_sort_by_TP, combo_sort_by_TC, sort_TC_index)
+        #print "NEXT TIMEPOINT i = %d" %i
+        #print "combo_sort_by_TP\n%s\ncombo_sort_TC\n%s\nsort_TC_index\n%s" % (combo_sort_by_TP, combo_sort_by_TC, sort_TC_index)
         
         # If the current time point is a peak.
         if combo_sort_by_TC[i][1] == 1:
@@ -238,8 +251,8 @@ def peak_finder(y_data, sensitivity):
                 position_in_time = (sort_TC_index[i]-j)
                 current_peak = [combo_sort_by_TP[0][sort_TC_index[i]],combo_sort_by_TP[1][sort_TC_index[i]]]
                 compare_left = [combo_sort_by_TP[0][sort_TC_index[i]-j],combo_sort_by_TP[1][sort_TC_index[i]-j]]
-                print "compare left"
-                print "position_in_time=%d\ncurrent_peak=%s\ncompare_left=%s\n" % (position_in_time, current_peak, compare_left)
+                #print "compare left"
+                #print "position_in_time=%d\ncurrent_peak=%s\ncompare_left=%s\n" % (position_in_time, current_peak, compare_left)
                 # if the current peak is greater than the significant jump size from the compare point, it's significant.
                 if ((current_peak[0] - compare_left[0])>min_jump):
                     left_sig = 1
@@ -267,22 +280,22 @@ def peak_finder(y_data, sensitivity):
                          raise UnknownError, 'problem: shouldnt get here --  end peaks were not set properly. (Must be either a peak or valley)'  
 
                 j=j+1
-                print 'while loop left i=%d num_timepoints=%d left_sig=%d sort_TC_index[i]=%d sort_TC_index[i]-j=%d' % (i,num_timepoints,left_sig,sort_TC_index[i],sort_TC_index[i]-j)
+                #print 'while loop left i=%d num_timepoints=%d left_sig=%d sort_TC_index[i]=%d sort_TC_index[i]-j=%d' % (i,num_timepoints,left_sig,sort_TC_index[i],sort_TC_index[i]-j)
 
-            print 'end compare left while'
+            #print 'end compare left while'
             j=1
             right_sig=0 #1 = significant ; -1 = insignificant
 
-            print 'before right i=%d num_timepoints=%d right_sig=%d sort_TC_index[i]=%d sort_TC_index[i]-j=%d' % (i,num_timepoints,right_sig,sort_TC_index[i],sort_TC_index[i]-j)
+            #print 'before right i=%d num_timepoints=%d right_sig=%d sort_TC_index[i]=%d sort_TC_index[i]-j=%d' % (i,num_timepoints,right_sig,sort_TC_index[i],sort_TC_index[i]-j)
             #--------------COMPARE TO THE RIGHT-------------------------------
             while (right_sig!=1)&(sort_TC_index[i]!=num_timepoints-1)&(sort_TC_index[i]!=0)&((sort_TC_index[i]+j)<=num_timepoints-1):
                 position_in_time = (sort_TC_index[i]+j)
-                print 'num_timepoints = %d\ni = %d\nj = %d\n\nsort_TC_index[i] = %d\ncombo_sort_by_TP%s' % (num_timepoints,i,j,sort_TC_index[i],combo_sort_by_TP)
+                #print 'num_timepoints = %d\ni = %d\nj = %d\n\nsort_TC_index[i] = %d\ncombo_sort_by_TP%s' % (num_timepoints,i,j,sort_TC_index[i],combo_sort_by_TP)
                 current_peak = [combo_sort_by_TP[0][sort_TC_index[i]],combo_sort_by_TP[1][sort_TC_index[i]]]
                 compare_right = [combo_sort_by_TP[0][sort_TC_index[i]+j],combo_sort_by_TP[1][sort_TC_index[i]+j]]
                 
-                print "compare right"
-                print "position_in_time=%d\ncurrent_peak=%s\ncompare_right=%s\n" % (position_in_time, current_peak, compare_right)
+                #print "compare right"
+                #print "position_in_time=%d\ncurrent_peak=%s\ncompare_right=%s\n" % (position_in_time, current_peak, compare_right)
                 
                 # if the current peak is greater than the significant jump size from the compare point, its sugnificant.
                 if ((current_peak[0] - compare_right[0])>min_jump):
@@ -290,18 +303,18 @@ def peak_finder(y_data, sensitivity):
                 
                 # if the comparing point is a peak and is lower then the current peak, then the comparing point is not a significant peak
                 # these rules dont apply to the very last point.
-                print "compare_right[1] = %d sort_TC_index[i]+j != num_timepoints -1  %d != %d" % (compare_right[1],sort_TC_index[i]+j,num_timepoints-1)
+                #print "compare_right[1] = %d sort_TC_index[i]+j != num_timepoints -1  %d != %d" % (compare_right[1],sort_TC_index[i]+j,num_timepoints-1)
                 if ((compare_right[1] == 1)&((sort_TC_index[i]+j)!=num_timepoints-1)):
-                    print "INSIDE CHECKPOINT"
+                    #print "INSIDE CHECKPOINT"
                     if ((current_peak[0]-compare_right[0])>0):
-                        print "peak"
+                        #print "peak"
                         combo_sort_by_TP[1][sort_TC_index[i]+j]=0
                     else:
-                        print "NO PEAK"
+                        #print "NO PEAK"
                         # if the comparing peak is higher than the current peak, then the current peak is not a significant peak
                         right_sig = -1
                         combo_sort_by_TP[1][sort_TC_index[i]]=0
-                print "SKIP CHECKPOINT"
+                #print "SKIP CHECKPOINT"
                 # if it reaches the end of the time course and the end is a peak, then current peak is insig
                 # if end is a valley than current peak is significant
                 if ((sort_TC_index[i]+j)==num_timepoints-1):
@@ -333,7 +346,7 @@ def peak_finder(y_data, sensitivity):
             combo_sort_by_TC.reverse()
     
             sort_TC_index.reverse()
-    print "combo_sort_by_TP %s" % combo_sort_by_TP
+    #print "combo_sort_by_TP %s" % combo_sort_by_TP
     #---------SET VALLEYS--------------------------------
     # Valleys are set as the lowest point between two peaks.
 
@@ -341,7 +354,7 @@ def peak_finder(y_data, sensitivity):
     no_first = 1 
     # initialize the low valley as the highest point, so valley will be guaranteed to be lower.
     low_valley = max(combo_sort_by_TP[0])
-    print 'low_valley = %f' % low_valley
+    #print 'low_valley = %f' % low_valley
     for i in range(0,num_timepoints):
         if (combo_sort_by_TP[1][i] == 1): 
             if (no_first == 1):
@@ -355,6 +368,6 @@ def peak_finder(y_data, sensitivity):
             low_valley = combo_sort_by_TP[0][i]
             low_valley_position = i
     
-    print "combo_sort_by_TP %s" % combo_sort_by_TP
+    #print        "combo_sort_by_TP %s" % combo_sort_by_TP
     return combo_sort_by_TP[1]
     
